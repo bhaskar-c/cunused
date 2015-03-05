@@ -28,9 +28,22 @@ function DisplayForm($values, $errors)
 function ProcessForm($values)
     {
       
-       echo "url: {$values['url']}";
-       $pagecontent = file_get_contents($values['url']);
-      echo $pagecontent;
+       echo "url: {$values['url']}<br>";
+       //$pagecontent = htmlspecialchars(file_get_contents($values['url']));
+       //echo  $pagecontent;
+       require_once 'simple_html_dom.php';
+       echo "<h3>Following CSS files analyzed:</h3>";
+       $website = file_get_html($values['url']);
+       foreach ($website->find('link[rel="stylesheet"]') as $stylesheet)
+        {
+            $stylesheet_url = $stylesheet->href;
+        // Do something with the URL
+        echo "{$stylesheet_url} <br>";
+        echo "<br>***********************************************************<br>";
+        echo file_get_contents($stylesheet_url);
+        echo "<br>***********************************************************<br>";
+        }
+      
     }
      
     if ($_SERVER['REQUEST_METHOD'] == 'POST')
