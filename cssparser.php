@@ -18,7 +18,7 @@ function parse($file){
 
         $selectors = explode(',', trim($selector));
         foreach ($selectors as $strSel){
-            $result[$strSel] = $rules_arr;
+            $result[trim($strSel)] = $rules_arr;
         }
     }
     return $result;

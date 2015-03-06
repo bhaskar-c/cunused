@@ -32,16 +32,16 @@ function ProcessForm($values)
        //$pagecontent = htmlspecialchars(file_get_contents($values['url']));
        //echo  $pagecontent;
        require_once 'simple_html_dom.php';
+       require_once 'cssparser.php';
        echo "<h3>Following CSS files analyzed:</h3>";
        $website = file_get_html($values['url']);
        foreach ($website->find('link[rel="stylesheet"]') as $stylesheet)
         {
             $stylesheet_url = $stylesheet->href;
-        // Do something with the URL
-        echo "{$stylesheet_url} <br>";
-        echo "<br>***********************************************************<br>";
-        echo file_get_contents($stylesheet_url);
-        echo "<br>***********************************************************<br>";
+            // Do something with the URL
+            $css =  parse($stylesheet_url);
+            var_dump($css);
+        
         }
       
     }
