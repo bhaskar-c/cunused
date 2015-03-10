@@ -32,10 +32,19 @@ $cssfile = preg_replace('!/\*.*?\*/!s', '', $cssfile); // remove all multiline c
 
 foreach($unused as $unuseditem) {
 	$unuseditem = preg_quote($unuseditem, '/'); 
+	
+	if(preg_match('/[^a-zA-Z {}]+(?![^{]*})/', $unuseditem)) {
+	$cssfile = preg_replace("~\b" .$unuseditem. "\b~", '', $cssfile);} // replace '' with 'someoword' to see its effect
+	
 	$unuseditem = '(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))'.$unuseditem.'(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))';
     $cssfile = preg_replace('/'.$unuseditem.'/', "", $cssfile);
 }
-$cssfile = preg_replace('/}\s*{[^}]*}/', "}", $cssfile);// partly working remover of definitions with no selector elements
+
+//working remover of definitions with no selector elements
+do {
+    $cssfile = preg_replace('/}\s*,?\s*{[^}]*}/S', "}", $cssfile, -1, $count); 
+} while ($count);
+
 
 $cssfile = str_replace('}',"}<br>", $cssfile);
 echo $cssfile;
