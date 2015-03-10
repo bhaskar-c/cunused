@@ -1,5 +1,7 @@
 <?php
 
+$b = "<br>";
+
 require_once 'simple_html_dom.php';
 require_once 'cssparser.php';
 
@@ -7,10 +9,45 @@ $html = file_get_html('test.html');
 $stylesheet_url = 'test.css';
 $css =  parse($stylesheet_url);
 
-foreach(array_keys($css) as $cssitem)
-	echo $cssitem . ":". (null !==($html->find(trim(explode(':', $cssitem, 2)[0]), 0)) ? 'used': 'unused') . "<br>";
-	
-/*
-$a = "a : hover";
-echo trim(explode(':', $cssitem, 2)[0]);*/	
+$used = array();
+$unused = array();
+foreach(array_keys($css) as $cssitem) 
+	(null !==($html->find(trim(explode(':', $cssitem, 2)[0]), 0)) ? array_push($used, $cssitem) : array_push($unused, $cssitem));
+/*	
+echo "<h2>Used items </h2>";
 
+foreach($used as $useditem)
+	echo $useditem.$b;
+
+
+echo "<h2>Unused items </h2>";
+
+foreach($unused as $unuseditem)
+	echo $unuseditem.$b;
+*/
+
+
+$cssfile = file_get_contents('test.css');
+$cssfile = preg_replace('!/\*.*?\*/!s', '', $cssfile); // remove all multiline comments
+
+foreach($unused as $unuseditem) {
+	$unuseditem = preg_quote($unuseditem, '/'); 
+	$unuseditem = '(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))'.$unuseditem.'(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))';
+    $cssfile = preg_replace('/'.$unuseditem.'/', "", $cssfile);
+}
+$cssfile = preg_replace('/}\s*{[^}]*}/', "}", $cssfile);// partly working remover of definitions with no selector elements
+
+$cssfile = str_replace('}',"}<br>", $cssfile);
+echo $cssfile;
+
+
+/*
+ * partly working
+ * foreach($unused as $unuseditem) {
+	if (preg_match('/^\w/', $unuseditem))
+		$unuseditem = '\b'.$unuseditem;
+	if (preg_match('/\w$/', $unuseditem))
+    $unuseditem = $unuseditem.'\b';
+    //$unuseditem = preg_quote($unuseditem, '.'); 
+$cssfile = preg_replace('/'.$unuseditem.'/', "", $cssfile);
+*/
