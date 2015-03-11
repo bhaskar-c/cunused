@@ -29,12 +29,14 @@ foreach($unused as $unuseditem)
 
 $cssfile = file_get_contents('test.css');
 $cssfile = preg_replace('!/\*.*?\*/!s', '', $cssfile); // remove all multiline comments
+$cssfile = str_replace(',', ' ,', $cssfile);
 
 foreach($unused as $unuseditem) {
 	$unuseditem = preg_quote($unuseditem, '/'); 
 	
-	if(preg_match('/[^a-zA-Z {}]+(?![^{]*})/', $unuseditem)) {
-	$cssfile = preg_replace("~\b" .$unuseditem. "\b~", '', $cssfile);} // replace '' with 'someoword' to see its effect
+	//if(preg_match('/[^a-zA-Z0-9 {}]+(?![^{]*})/', $unuseditem)) {
+	//$cssfile = preg_replace("~\b" .$unuseditem. "\b~", '', $cssfile);} // replace '' with 'someoword' to see its effect
+	
 	
 	$unuseditem = '(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))'.$unuseditem.'(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))';
     $cssfile = preg_replace('/'.$unuseditem.'/', "", $cssfile);
@@ -45,8 +47,12 @@ do {
     $cssfile = preg_replace('/}\s*,?\s*{[^}]*}/S', "}", $cssfile, -1, $count); 
 } while ($count);
 
+$cssfile = preg_replace("/(,\s*){2,}/", ",", $cssfile);  // remove multiple instances of comma
+$cssfile = preg_replace("/}\s*?,/", "}", $cssfile);
+$cssfile = preg_replace("/,\s*{/", "{", $cssfile);
 
-$cssfile = str_replace('}',"}<br>", $cssfile);
+
+$cssfile = str_replace('}',"}<br>", $cssfile); 
 echo $cssfile;
 
 
