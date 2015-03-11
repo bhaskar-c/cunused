@@ -29,29 +29,35 @@ foreach($unused as $unuseditem)
 
 $cssfile = file_get_contents('test.css');
 $cssfile = preg_replace('!/\*.*?\*/!s', '', $cssfile); // remove all multiline comments
-$cssfile = str_replace(',', ' ,', $cssfile);
+$cssfile = str_replace(',', ' ,', $cssfile); // important - this is making all the difference to regex working and not working
 
 foreach($unused as $unuseditem) {
 	$unuseditem = preg_quote($unuseditem, '/'); 
-	
-	//if(preg_match('/[^a-zA-Z0-9 {}]+(?![^{]*})/', $unuseditem)) {
-	//$cssfile = preg_replace("~\b" .$unuseditem. "\b~", '', $cssfile);} // replace '' with 'someoword' to see its effect
-	
-	
 	$unuseditem = '(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))'.$unuseditem.'(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))';
     $cssfile = preg_replace('/'.$unuseditem.'/', "", $cssfile);
 }
 
-//working remover of definitions with no selector elements
+$cssfile = preg_replace("/(,\s*){2,}/", ",", $cssfile);  // remove multiple instances of comma
+$cssfile = preg_replace("/}\s*?,/", "}", $cssfile); // remove deinitions with only comma left as selector
+
 do {
-    $cssfile = preg_replace('/}\s*,?\s*{[^}]*}/S', "}", $cssfile, -1, $count); 
+    $cssfile = preg_replace('/}\s*,?\s*{[^}]*}/S', "}", $cssfile, -1, $count); //remove definitions with no selector elements
 } while ($count);
 
-$cssfile = preg_replace("/(,\s*){2,}/", ",", $cssfile);  // remove multiple instances of comma
-$cssfile = preg_replace("/}\s*?,/", "}", $cssfile);
-$cssfile = preg_replace("/,\s*{/", "{", $cssfile);
+
+do {
+    $cssfile = preg_replace('/{\s*,?\s*{[^}]*}/S', "}", $cssfile, -1, $count);// handle 1st unused definition within media query of format ' { {some dfinitions here }'
+} while ($count);
 
 
+
+
+
+$cssfile = preg_replace("/,\s*{/", "{", $cssfile); //remove instances like ', {' 
+$cssfile = preg_replace("/{\s*,/", "{", $cssfile); //remove instances like '{ ,' 
+
+
+$cssfile = str_replace(' ,', ',', $cssfile); // 
 $cssfile = str_replace('}',"}<br>", $cssfile); 
 echo $cssfile;
 
