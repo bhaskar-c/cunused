@@ -1,7 +1,4 @@
 <?php
-
-$b = "<br>";
-
 require_once 'simple_html_dom.php';
 require_once 'cssparser.php';
 
@@ -26,12 +23,33 @@ foreach($unused as $unuseditem)
 	echo $unuseditem.$b;
 */
 
-
 $cssfile = file_get_contents('test.css');
 $cssfile = preg_replace('!/\*.*?\*/!s', '', $cssfile); // remove all multiline comments
 $cssfile = str_replace(',', ' ,', $cssfile); // important - this is making all the difference to regex working and not working
 
+function remove_first_whole_word_with_special_characters($needle,$replacement,&$haystack){
+    $needle = preg_quote($needle, '/'); 
+	$pattern = '/(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))'.$needle.'(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))( *\{)/';
+    $haystack = preg_replace($pattern, $replacement.' {', $haystack);
+    return $haystack;
+}
+
+
 foreach($unused as $unuseditem) {
+	
+	if(strpos($unuseditem, ' ') > 0){ // if it has child selectors strip all white spaces for removal
+		$tempunuseditem = str_replace(' ', '', $unuseditem);
+		$cssfile = remove_first_whole_word_with_special_characters($unuseditem, $tempunuseditem, $cssfile);
+		$unuseditem = $tempunuseditem;
+		
+	}
+	//echo $unuseditem."<br>";
+
+
+//$cssfile = str_replace('}',"}<br>", $cssfile); 
+//echo $cssfile; 
+
+/**/
 	$unuseditem = preg_quote($unuseditem, '/'); 
 	$unuseditem = '(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))'.$unuseditem.'(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))';
     $cssfile = preg_replace('/'.$unuseditem.'/', "", $cssfile);
@@ -46,11 +64,8 @@ do {
 
 
 do {
-    $cssfile = preg_replace('/{\s*,?\s*{[^}]*}/S', "}", $cssfile, -1, $count);// handle 1st unused definition within media query of format ' { {some dfinitions here }'
+    $cssfile = preg_replace('/{\s*,?\s*{[^}]*}/S', "}", $cssfile, -1, $count);// handle 1st unused definition within media query format like ' { {some definitions here }'
 } while ($count);
-
-
-
 
 
 $cssfile = preg_replace("/,\s*{/", "{", $cssfile); //remove instances like ', {' 
@@ -62,13 +77,3 @@ $cssfile = str_replace('}',"}<br>", $cssfile);
 echo $cssfile;
 
 
-/*
- * partly working
- * foreach($unused as $unuseditem) {
-	if (preg_match('/^\w/', $unuseditem))
-		$unuseditem = '\b'.$unuseditem;
-	if (preg_match('/\w$/', $unuseditem))
-    $unuseditem = $unuseditem.'\b';
-    //$unuseditem = preg_quote($unuseditem, '.'); 
-$cssfile = preg_replace('/'.$unuseditem.'/', "", $cssfile);
-*/

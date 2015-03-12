@@ -1,74 +1,79 @@
 <?php
-$needle = ".columns.three";
-$haystack = "oh my dear .columns.three";
-//$haystack = preg_replace("/$needle\.*\b/", 'God', $haystack);
-$haystack = preg_replace("~(?<=^| )$needle(?= |$)~", 'God', $haystack);
-echo $haystack;
-/*
- * 
- * <style>.error{ color: red;} </style>
-<?php
-
 require_once 'simple_html_dom.php';
 require_once 'cssparser.php';
-/*
+
 $html = file_get_html('test.html');
 $stylesheet_url = 'test.css';
 $css =  parse($stylesheet_url);
 
-foreach(array_keys($css) as $cssitem)
-	echo $cssitem . "------". (null !==($html->find(trim(explode(':', $cssitem, 2)[0]), 0)) ? 'used': 'unused') . "<br>";
-	// trim explode of cssitme takes care of all pseudo classes.
+$used = array();
+$unused = array();
+foreach(array_keys($css) as $cssitem) 
+	(null !==($html->find(trim(explode(':', $cssitem, 2)[0]), 0)) ? array_push($used, $cssitem) : array_push($unused, $cssitem));
+/*	
+echo "<h2>Used items </h2>";
+
+foreach($used as $useditem)
+	echo $useditem.$b;
+
+
+echo "<h2>Unused items </h2>";
+
+foreach($unused as $unuseditem)
+	echo $unuseditem.$b;
 */
 
-
 $cssfile = file_get_contents('test.css');
-//echo "before=".$cssfile."<br>";
-//$cssfile = preg_replace('!/\*.*?\*/!s', '', $cssfile); // remove all multiline comments
+$cssfile = preg_replace('!/\*.*?\*/!s', '', $cssfile); // remove all multiline comments
+$cssfile = str_replace(',', ' ,', $cssfile); // important - this is making all the difference to regex working and not working
 
-$html = file_get_html('test.html');
-$stylesheet_url = 'test.css';
-$css =  parse($stylesheet_url);
-
-
-
-//pass 1 - remove unsued elements
-foreach(array_keys($css) as $cssitem){
-	echo $cssitem . "-". (null !==($html->find(trim(explode(':', $cssitem, 2)[0]), 0)) ? 'used': 'unused') ;
-    if(null ==($html->find(trim(explode(':', $cssitem, 2)[0]), 0))) 
-		 //echo "cssitem =".$cssitem."-";
-		 //$cssitem  = trim($cssitem);
-		 echo "-". preg_match("~(?<=^| )$cssitem(?= |$)~", $cssfile)."<br>";
-		 //$cssfile = preg_replace("~(?<=^| )$cssitem(?= |$)~", ' ' ,   $cssfile);
-		 //echo "cssfile =".$cssfile."<br>";
-		 //global $cssfile;
-		  //$cssfile = preg_replace("~(?<=^| )$cssitem(?= |$)~", '', $cssfile);
-		  //echo strlen($cssfile)."<br>";
-		 //echo $cssitem."<br>";
-	 }	
-		 //echo $cssitem."<br>";
-		
-		//echo strlen($cssfile);
-		
-//$cssfile = str_replace(';',";<br>", $cssfile);
-//$cssfile = str_replace('}',"}<br>", $cssfile);
-
-//pass 2 remove remaning definitions which have no selector of the format '/}\s{/'
-//$cssfile = preg_replace('/}\s*{[^}]*}/','}', $cssfile);
-echo "final file:".$cssfile;
-
-//pass 3 replace ', {' with '{'
-//to do
-
-
-string[] inputs = { "& hmm& Swanand & Rashmi &", "&Swanand Rashmi&", "& Swanand & Rashmi &", "& Swanand&Rashmi &", "Swanand& & &Rashmi &." };
-string remove = Regex.Escape("&");
-string pattern = String.Format(@"(\b(?<!\w){0}\b|(?<=^|\s){0}(?=\s|$))", remove);
-string replace = "And";
-foreach (string input in inputs)
-{
-    string result = Regex.Replace(input, pattern, replace, RegexOptions.IgnoreCase);
-    Console.WriteLine("Original: " + input);
-    Console.WriteLine("Replace: " + result);
-    Console.WriteLine();
+function remove_first_whole_word_with_special_characters($needle,$replacement,&$haystack){
+    $needle = preg_quote($needle, '/'); 
+	$pattern = '/(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))'.$needle.'(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))( *\{)/';
+    $haystack = preg_replace($pattern, $replacement.' {', $haystack);
+    return $haystack;
 }
+
+
+foreach($unused as $unuseditem) {
+	
+	if(strpos($unuseditem, ' ') > 0){ // if it has child selectors strip all white spaces for removal
+		$tempunuseditem = str_replace(' ', '', $unuseditem);
+		$cssfile = remove_first_whole_word_with_special_characters($unuseditem, $tempunuseditem, $cssfile);
+		$unuseditem = $tempunuseditem;
+		
+	}
+	//echo $unuseditem."<br>";
+
+
+//$cssfile = str_replace('}',"}<br>", $cssfile); 
+//echo $cssfile; 
+
+/**/
+	$unuseditem = preg_quote($unuseditem, '/'); 
+	$unuseditem = '(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))'.$unuseditem.'(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))';
+    $cssfile = preg_replace('/'.$unuseditem.'/', "", $cssfile);
+}
+
+$cssfile = preg_replace("/(,\s*){2,}/", ",", $cssfile);  // remove multiple instances of comma
+$cssfile = preg_replace("/}\s*?,/", "}", $cssfile); // remove deinitions with only comma left as selector
+
+do {
+    $cssfile = preg_replace('/}\s*,?\s*{[^}]*}/S', "}", $cssfile, -1, $count); //remove definitions with no selector elements
+} while ($count);
+
+
+do {
+    $cssfile = preg_replace('/{\s*,?\s*{[^}]*}/S', "}", $cssfile, -1, $count);// handle 1st unused definition within media query format like ' { {some definitions here }'
+} while ($count);
+
+
+$cssfile = preg_replace("/,\s*{/", "{", $cssfile); //remove instances like ', {' 
+$cssfile = preg_replace("/{\s*,/", "{", $cssfile); //remove instances like '{ ,' 
+
+
+$cssfile = str_replace(' ,', ',', $cssfile); // 
+$cssfile = str_replace('}',"}<br>", $cssfile); 
+echo $cssfile;
+
+
