@@ -34,7 +34,7 @@ foreach($unused as $unuseditem) {
 		$pieces = explode(' ', $unuseditem);
 		//echo $unuseditem.'----'.$pieces[0]."<br>";
 		$pieces[0] = preg_quote($pieces[0], '/'); 
-		$cssfile = preg_replace('/(\s*)'.$pieces[0].' +.+[^,{]{/', "{", $cssfile);	
+		$cssfile = preg_replace('/(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))'.$pieces[0].' +.+[^,{]{/', "{", $cssfile);	
 		$unused = array_diff($unused, array($unuseditem));	
 	}
 
