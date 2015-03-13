@@ -10,11 +10,11 @@ $used = array();
 $unused = array();
 foreach(array_keys($css) as $cssitem) 
 	(null !==($html->find(trim(explode(':', $cssitem, 2)[0]), 0)) ? array_push($used, $cssitem) : array_push($unused, $cssitem));
-/*	
+/*
 echo "<h2>Used items </h2>";
 
 foreach($used as $useditem)
-	echo $useditem.$b;
+	echo $useditem."<br>";
 
 
 echo "<h2>Unused items </h2>";
@@ -25,8 +25,13 @@ foreach($unused as $unuseditem)
 
 $cssfile = file_get_contents('test.css');
 $cssfile = preg_replace('!/\*.*?\*/!s', '', $cssfile); // remove all multiline comments
-$cssfile = str_replace(',', ' ,', $cssfile); // important - this is making all the difference to regex working and not working
-
+$cssfile = str_replace(',', ' , ', $cssfile); // important - this is making all the difference to regex working and not working
+$cssfile = str_replace('{', ' { ', $cssfile);
+$cssfile = str_replace('}', ' } ', $cssfile);
+/*
+foreach($unused as $unuseditem) {
+	echo $unuseditem."<br>";
+}
 
 
 foreach($unused as $unuseditem) {
@@ -38,11 +43,20 @@ foreach($unused as $unuseditem) {
 		$unused = array_diff($unused, array($unuseditem));	
 	}
 
-}
+}*/
 foreach($unused as $unuseditem) {
 	//echo $unuseditem."<br>";
 	$unuseditem = preg_quote($unuseditem, '/'); 
-	$unuseditem = '(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))'.$unuseditem.'(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))';
+	$unuseditem = '(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))'.$unuseditem.'(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$)) *{';
+    $cssfile = preg_replace('/'.$unuseditem.'/', "{", $cssfile);
+	
+}
+
+
+foreach($unused as $unuseditem) {
+	//echo $unuseditem."<br>";
+	$unuseditem = preg_quote($unuseditem, '/'); 
+	$unuseditem = '(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))'.$unuseditem.'(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$)) *,';
     $cssfile = preg_replace('/'.$unuseditem.'/', "", $cssfile);
 	
 }
@@ -67,7 +81,7 @@ $cssfile = preg_replace("/,\s*{/", "{", $cssfile); //remove instances like ', {'
 $cssfile = preg_replace("/{\s*,/", "{", $cssfile); //remove instances like '{ ,' 
 
 
-$cssfile = str_replace(' ,', ',', $cssfile); // 
+$cssfile = str_replace(' , ', ',', $cssfile); // 
 $cssfile = str_replace('}',"}<br>", $cssfile); 
 echo $cssfile;
 

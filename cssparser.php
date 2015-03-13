@@ -2,7 +2,7 @@
 
 function parse($file){
     $css = file_get_contents($file);
-    preg_match_all( '/(?ims)([a-z0-9\s\.\:#_\-@,]+)\{([^\}]*)\}/', $css, $arr);
+    preg_match_all( '/(?ims)([a-z0-9\s\.\:#_\-@,>\[\]]+)\{([^\}]*)\}/', $css, $arr);
     $result = array();
     foreach ($arr[0] as $i => $x){
         $selector = trim($arr[1][$i]);
