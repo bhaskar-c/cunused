@@ -27,29 +27,14 @@ $cssfile = file_get_contents('test.css');
 $cssfile = preg_replace('!/\*.*?\*/!s', '', $cssfile); // remove all multiline comments
 $cssfile = str_replace(',', ' ,', $cssfile); // important - this is making all the difference to regex working and not working
 
-function remove_first_whole_word_with_special_characters($needle,$replacement,&$haystack){
-    $needle = preg_quote($needle, '/'); 
-	$pattern = '/(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))'.$needle.'(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))( *\{)/';
-    $haystack = preg_replace($pattern, $replacement.' {', $haystack);
-    return $haystack;
-}
 
 
 foreach($unused as $unuseditem) {
-	
-	if(strpos($unuseditem, ' ') > 0){ // if it has child selectors strip all white spaces for removal
-		$tempunuseditem = str_replace(' ', '', $unuseditem);
-		$cssfile = remove_first_whole_word_with_special_characters($unuseditem, $tempunuseditem, $cssfile);
-		$unuseditem = $tempunuseditem;
-		
+	if(strpos($unuseditem, ' ') > 0){ // if it has child selectorsm
+		$pieces = explode(' ', $unuseditem);
+		//echo $unuseditem.'----'.$pieces[0]."<br>";
+		$cssfile = preg_replace('/'.$pieces[0].' +.+[^,{]{/', "{", $cssfile);		
 	}
-	//echo $unuseditem."<br>";
-
-
-//$cssfile = str_replace('}',"}<br>", $cssfile); 
-//echo $cssfile; 
-
-/**/
 	$unuseditem = preg_quote($unuseditem, '/'); 
 	$unuseditem = '(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))'.$unuseditem.'(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))';
     $cssfile = preg_replace('/'.$unuseditem.'/', "", $cssfile);
