@@ -33,12 +33,22 @@ foreach($unused as $unuseditem) {
 	if(strpos($unuseditem, ' ') > 0){ // if it has child selectorsm
 		$pieces = explode(' ', $unuseditem);
 		//echo $unuseditem.'----'.$pieces[0]."<br>";
-		$cssfile = preg_replace('/'.$pieces[0].' +.+[^,{]{/', "{", $cssfile);		
+		$pieces[0] = preg_quote($pieces[0], '/'); 
+		$cssfile = preg_replace('/(\s*)'.$pieces[0].' +.+[^,{]{/', "{", $cssfile);	
+		$unused = array_diff($unused, array($unuseditem));	
 	}
+
+}
+foreach($unused as $unuseditem) {
+	//echo $unuseditem."<br>";
 	$unuseditem = preg_quote($unuseditem, '/'); 
 	$unuseditem = '(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))'.$unuseditem.'(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))';
     $cssfile = preg_replace('/'.$unuseditem.'/', "", $cssfile);
+	
 }
+
+//echo $cssfile;
+
 
 $cssfile = preg_replace("/(,\s*){2,}/", ",", $cssfile);  // remove multiple instances of comma
 $cssfile = preg_replace("/}\s*?,/", "}", $cssfile); // remove deinitions with only comma left as selector
