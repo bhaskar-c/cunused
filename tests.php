@@ -27,23 +27,8 @@ $cssfile = file_get_contents('test.css');
 $cssfile = preg_replace('!/\*.*?\*/!s', '', $cssfile); // remove all multiline comments
 $cssfile = str_replace(',', ' , ', $cssfile); // important - this is making all the difference to regex working and not working
 $cssfile = str_replace('{', ' { ', $cssfile);
-$cssfile = str_replace('}', ' } ', $cssfile);
-/*
-foreach($unused as $unuseditem) {
-	echo $unuseditem."<br>";
-}
+//$cssfile = str_replace('}', ' } ', $cssfile);
 
-
-foreach($unused as $unuseditem) {
-	if(strpos($unuseditem, ' ') > 0){ // if it has child selectorsm
-		$pieces = explode(' ', $unuseditem);
-		//echo $unuseditem.'----'.$pieces[0]."<br>";
-		$pieces[0] = preg_quote($pieces[0], '/'); 
-		$cssfile = preg_replace('/(?:(?<=^|\s)(?=\S|$)|(?<=^|\S)(?=\s|$))'.$pieces[0].'( |>)+.+[^,{]{/', "{", $cssfile);	
-		$unused = array_diff($unused, array($unuseditem));	
-	}
-
-}*/
 foreach($unused as $unuseditem) {
 	//echo $unuseditem."<br>";
 	$unuseditem = preg_quote($unuseditem, '/'); 
@@ -61,9 +46,6 @@ foreach($unused as $unuseditem) {
 	
 }
 
-//echo $cssfile;
-
-
 $cssfile = preg_replace("/(,\s*){2,}/", ",", $cssfile);  // remove multiple instances of comma
 $cssfile = preg_replace("/}\s*?(,|>)/", "}", $cssfile); // remove deinitions with only comma or > left as selector
 
@@ -78,7 +60,7 @@ do {
 
 
 $cssfile = preg_replace("/,\s*{/", "{", $cssfile); //remove instances like ', {' 
-$cssfile = preg_replace("/{\s*,/", "{", $cssfile); //remove instances like '{ ,' 
+//$cssfile = preg_replace("/{\s*,/", "{", $cssfile); //remove instances like '{ ,' 
 
 
 $cssfile = str_replace(' , ', ',', $cssfile); // 
